@@ -532,6 +532,29 @@ public class TrinoITCase extends AbstractTestQueryFramework {
         }
 
         {
+            Path tablePath = new Path(warehouse, "default.db/fixed_bucket_table_partitioned_wi_pk");
+            RowType rowType =
+                    new RowType(
+                            Arrays.asList(
+                                    new DataField(0, "order_key", DataTypes.BIGINT()),
+                                    new DataField(1, "order_name", DataTypes.STRING()),
+                                    new DataField(2, "order_date", DataTypes.DATE())));
+            new SchemaManager(LocalFileIO.create(), tablePath)
+                    .createTable(
+                            new Schema(
+                                    rowType.getFields(),
+                                    Arrays.asList("order_date"),
+                                    Arrays.asList("order_key", "order_date"),
+                                    new HashMap<>() {
+                                        {
+                                            put("bucket", "2");
+                                            put("bucket-key", "order_key");
+                                        }
+                                    },
+                                    ""));
+        }
+
+        {
             Path tablePath = new Path(warehouse, "default.db/unaware_table");
             RowType rowType =
                     new RowType(
@@ -561,6 +584,8 @@ public class TrinoITCase extends AbstractTestQueryFramework {
             queryRunner.installPlugin(new TrinoPlugin());
             Map<String, String> options = new HashMap<>();
             options.put("warehouse", warehouse);
+            options.put("fs.native-local.enabled", "true");
+            options.put("local.location", "/");
             queryRunner.createCatalog(CATALOG, CATALOG, options);
             return queryRunner;
         } catch (Throwable e) {
@@ -751,12 +776,13 @@ public class TrinoITCase extends AbstractTestQueryFramework {
         sql("ALTER TABLE paimon.default.t5 ADD COLUMN zip varchar");
         assertThat(sql("SHOW COLUMNS FROM paimon.default.t5"))
                 .isEqualTo(
-                        "[[order_key, bigint, , ], [order_status, varchar(2147483646), , ], [total_price, double, , ], [order_date, date, , ], [zip, varchar(2147483646), , ]]");
+                        "[[order_key, bigint, , ], [order_status, varchar, , ], [total_price, double, , ], [order_date, date, , ], [zip, varchar, , ]]");
         sql("DROP TABLE IF EXISTS paimon.default.t5");
     }
 
     @Test
     public void testRenameColumn() {
+        sql("DROP TABLE IF EXISTS paimon.default.t5");
         sql(
                 "CREATE TABLE t5 ("
                         + "  order_key bigint,"
@@ -775,7 +801,7 @@ public class TrinoITCase extends AbstractTestQueryFramework {
         sql("ALTER TABLE paimon.default.t5 RENAME COLUMN order_status to g");
         assertThat(sql("SHOW COLUMNS FROM paimon.default.t5"))
                 .isEqualTo(
-                        "[[order_key, bigint, , ], [g, varchar(2147483646), , ], [total_price, double, , ], [order_date, date, , ]]");
+                        "[[order_key, bigint, , ], [g, varchar, , ], [total_price, double, , ], [order_date, date, , ]]");
         sql("DROP TABLE IF EXISTS paimon.default.t5");
     }
 
@@ -932,6 +958,17 @@ public class TrinoITCase extends AbstractTestQueryFramework {
                 "INSERT INTO paimon.default.fixed_bucket_table_wo_pk VALUES (1,'1'),(2,'2'),(3,'3'),(4,'4'),(1,'1'),(2,'2'),(3,'3'),(4,'4')");
         assertThat(sql("SELECT * FROM paimon.default.fixed_bucket_table_wo_pk order by id asc"))
                 .isEqualTo("[[1, 1], [1, 1], [2, 2], [2, 2], [3, 3], [3, 3], [4, 4], [4, 4]]");
+    }
+
+    @Test
+    public void testInsertIntoFixedBucketPartitionedTableWithBucketKey() {
+        sql(
+                "INSERT INTO paimon.default.fixed_bucket_table_partitioned_wi_pk "
+                        + "VALUES (1, 'hello', DATE '2024-01-15'), (2, 'world', DATE '2024-01-15')");
+        assertThat(
+                        sql(
+                                "SELECT * FROM paimon.default.fixed_bucket_table_partitioned_wi_pk ORDER BY order_key ASC"))
+                .isEqualTo("[[1, hello, 2024-01-15], [2, world, 2024-01-15]]");
     }
 
     @Test

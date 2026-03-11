@@ -20,6 +20,7 @@ package org.apache.paimon.trino;
 
 import io.trino.spi.Page;
 import io.trino.spi.connector.ConnectorPageSource;
+import io.trino.spi.connector.SourcePage;
 import io.trino.spi.metrics.Metrics;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class DirectTrinoPageSource implements ConnectorPageSource {
     private ConnectorPageSource current;
     private final LinkedList<ConnectorPageSource> pageSourceQueue;
     private long completedBytes;
+    private long completedReadTimeNanos;
 
     public DirectTrinoPageSource(LinkedList<ConnectorPageSource> pageSourceQueue) {
         this.pageSourceQueue = pageSourceQueue;
@@ -45,7 +47,7 @@ public class DirectTrinoPageSource implements ConnectorPageSource {
 
     @Override
     public long getReadTimeNanos() {
-        return current == null ? 0 : current.getReadTimeNanos();
+        return completedReadTimeNanos + (current == null ? 0 : current.getReadTimeNanos());
     }
 
     @Override
@@ -59,7 +61,8 @@ public class DirectTrinoPageSource implements ConnectorPageSource {
             if (current == null) {
                 return null;
             }
-            Page dataPage = current.getNextPage();
+            SourcePage sourcePage = current.getNextSourcePage();
+            Page dataPage = sourcePage == null ? null : sourcePage.getPage();
             if (dataPage == null) {
                 advance();
                 return getNextPage();
@@ -77,6 +80,7 @@ public class DirectTrinoPageSource implements ConnectorPageSource {
         }
         try {
             completedBytes += current.getCompletedBytes();
+            completedReadTimeNanos += current.getReadTimeNanos();
             current.close();
         } catch (IOException e) {
             current = null;

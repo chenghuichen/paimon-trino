@@ -41,6 +41,7 @@ import static io.trino.spi.type.IntegerType.INTEGER;
 import static io.trino.spi.type.RealType.REAL;
 import static io.trino.spi.type.SmallintType.SMALLINT;
 import static io.trino.spi.type.TimestampType.TIMESTAMP_MICROS;
+import static io.trino.spi.type.TinyintType.TINYINT;
 import static io.trino.spi.type.TypeUtils.writeNativeValue;
 import static io.trino.spi.type.VarbinaryType.VARBINARY;
 import static io.trino.spi.type.VarcharType.VARCHAR;
@@ -57,7 +58,7 @@ public class TrinoRowTest {
                         1,
                         writeNativeValue(BOOLEAN, null),
                         writeNativeValue(BOOLEAN, false),
-                        writeNativeValue(VARBINARY, Slices.wrappedBuffer((byte) 22)),
+                        writeNativeValue(TINYINT, 22L),
                         writeNativeValue(SMALLINT, 356L),
                         writeNativeValue(INTEGER, 4L),
                         writeNativeValue(BIGINT, 23567222L),

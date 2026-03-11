@@ -146,7 +146,7 @@ public class TrinoTypeTest {
 
         DataType varCharType =
                 TrinoTypeUtils.toPaimonType(VarcharType.createUnboundedVarcharType());
-        assertThat(varCharType.asSQLString()).isEqualTo("VARCHAR(2147483646)");
+        assertThat(varCharType.asSQLString()).isEqualTo("STRING");
 
         DataType booleanType = TrinoTypeUtils.toPaimonType(BooleanType.BOOLEAN);
         assertThat(booleanType.asSQLString()).isEqualTo("BOOLEAN");
@@ -204,7 +204,7 @@ public class TrinoTypeTest {
                                 IntegerType.INTEGER,
                                 VarcharType.createUnboundedVarcharType(),
                                 new TypeOperators()));
-        assertThat(mapType.asSQLString()).isEqualTo("MAP<INT, VARCHAR(2147483646)>");
+        assertThat(mapType.asSQLString()).isEqualTo("MAP<INT, STRING>");
 
         List<RowType.Field> fields = new ArrayList<>();
         fields.add(new RowType.Field(java.util.Optional.of("id"), IntegerType.INTEGER));
@@ -213,6 +213,6 @@ public class TrinoTypeTest {
                         java.util.Optional.of("name"), VarcharType.createUnboundedVarcharType()));
         Type type = RowType.from(fields);
         DataType rowType = TrinoTypeUtils.toPaimonType(type);
-        assertThat(rowType.asSQLString()).isEqualTo("ROW<`id` INT, `name` VARCHAR(2147483646)>");
+        assertThat(rowType.asSQLString()).isEqualTo("ROW<`id` INT, `name` STRING>");
     }
 }

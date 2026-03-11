@@ -16,7 +16,7 @@
 # limitations under the License.
 ################################################################################
 
-name: Publish Snapshot JDK21
+name: Publish Snapshot JDK24
 
 on:
   schedule:
@@ -25,7 +25,7 @@ on:
   workflow_dispatch:
 
 env:
-  JDK_VERSION: 21
+  JDK_VERSION: 24
 
 concurrency:
   group: ps-${{ github.event.pull_request.number || github.ref }}
@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      # temporarily publish the jdk21 version to maven
+      # temporarily publish the jdk24 version to maven
       - name: Set up JDK ${{ env.JDK_VERSION }}
         uses: actions/setup-java@v2
         with:
@@ -61,7 +61,7 @@ jobs:
           <toolchain>
            <type>jdk</type>
              <provides>
-               <version>21</version>
+               <version>24</version>
                <vendor>adopt</vendor>
              </provides>
              <configuration>

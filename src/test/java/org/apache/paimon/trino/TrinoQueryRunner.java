@@ -67,6 +67,8 @@ public class TrinoQueryRunner {
         Map<String, String> options =
                 ImmutableMap.<String, String>builder()
                         .put("warehouse", catalogDir.toFile().toURI().toString())
+                        .put("fs.native-local.enabled", "true")
+                        .put("local.location", "/")
                         .putAll(extraConnectorProperties)
                         .build();
 

@@ -28,6 +28,7 @@ import io.trino.spi.connector.ConnectorSplit;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /** Trino {@link ConnectorSplit}. */
 public class TrinoSplit implements ConnectorSplit {
@@ -73,8 +74,8 @@ public class TrinoSplit implements ConnectorSplit {
     }
 
     @Override
-    public Object getInfo() {
-        return Collections.emptyMap();
+    public Map<String, String> getSplitInfo() {
+        return Map.of();
     }
 
     @Override

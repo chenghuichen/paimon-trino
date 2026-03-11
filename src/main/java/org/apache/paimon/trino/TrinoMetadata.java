@@ -60,6 +60,7 @@ import io.trino.spi.connector.LimitApplicationResult;
 import io.trino.spi.connector.ProjectionApplicationResult;
 import io.trino.spi.connector.RetryMode;
 import io.trino.spi.connector.RowChangeParadigm;
+import io.trino.spi.connector.SaveMode;
 import io.trino.spi.connector.SchemaTableName;
 import io.trino.spi.connector.SchemaTablePrefix;
 import io.trino.spi.expression.ConnectorExpression;
@@ -110,7 +111,6 @@ public class TrinoMetadata implements ConnectorMetadata {
         return catalog;
     }
 
-    // todo support dynamic bucket table
     @Override
     public Optional<ConnectorTableLayout> getInsertLayout(
             ConnectorSession session, ConnectorTableHandle tableHandle) {
@@ -133,6 +133,7 @@ public class TrinoMetadata implements ConnectorMetadata {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+            case HASH_DYNAMIC:
             case BUCKET_UNAWARE:
                 return Optional.empty();
             default:
@@ -145,8 +146,12 @@ public class TrinoMetadata implements ConnectorMetadata {
             ConnectorSession session,
             ConnectorTableMetadata tableMetadata,
             Optional<ConnectorTableLayout> layout,
-            RetryMode retryMode) {
-        createTable(session, tableMetadata, false);
+            RetryMode retryMode,
+            boolean replace) {
+        if (replace) {
+            throw new UnsupportedOperationException("Create or replace table is not supported.");
+        }
+        createTable(session, tableMetadata, SaveMode.FAIL);
         return getTableHandle(session, tableMetadata.getTable(), Collections.emptyMap());
     }
 
@@ -175,6 +180,7 @@ public class TrinoMetadata implements ConnectorMetadata {
     public Optional<ConnectorOutputMetadata> finishInsert(
             ConnectorSession session,
             ConnectorInsertTableHandle insertHandle,
+            List<ConnectorTableHandle> sourceTableHandles,
             Collection<Slice> fragments,
             Collection<ComputedStatistics> computedStatistics) {
         return commit(session, (TrinoTableHandle) insertHandle, fragments);
@@ -263,7 +269,10 @@ public class TrinoMetadata implements ConnectorMetadata {
 
     @Override
     public ConnectorMergeTableHandle beginMerge(
-            ConnectorSession session, ConnectorTableHandle tableHandle, RetryMode retryMode) {
+            ConnectorSession session,
+            ConnectorTableHandle tableHandle,
+            Map<Integer, Collection<ColumnHandle>> updateCaseColumns,
+            RetryMode retryMode) {
         return new TrinoMergeTableHandle((TrinoTableHandle) tableHandle);
     }
 
@@ -271,6 +280,7 @@ public class TrinoMetadata implements ConnectorMetadata {
     public void finishMerge(
             ConnectorSession session,
             ConnectorMergeTableHandle mergeTableHandle,
+            List<ConnectorTableHandle> sourceTableHandles,
             Collection<Slice> fragments,
             Collection<ComputedStatistics> computedStatistics) {
         commit(session, (TrinoTableHandle) mergeTableHandle.getTableHandle(), fragments);
@@ -381,15 +391,14 @@ public class TrinoMetadata implements ConnectorMetadata {
                         } else {
                             try {
                                 catalog.initSession(session);
-                                String path =
+                                Table table =
                                         catalog.getTable(
-                                                        new Identifier(
-                                                                tableName.getSchemaName(),
-                                                                tableName.getTableName()))
-                                                .options()
-                                                .get("path");
+                                                new Identifier(
+                                                        tableName.getSchemaName(),
+                                                        tableName.getTableName()));
+                                String path = table.options().get("path");
 
-                                if (catalog.fileIO()
+                                if (table.fileIO()
                                         .exists(
                                                 new Path(
                                                         path
@@ -413,7 +422,6 @@ public class TrinoMetadata implements ConnectorMetadata {
         return getTableHandle(session, tableName, dynamicOptions);
     }
 
-    @Override
     public TrinoTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName) {
         return getTableHandle(session, tableName, Collections.emptyMap());
     }
@@ -492,9 +500,10 @@ public class TrinoMetadata implements ConnectorMetadata {
 
     @Override
     public void createTable(
-            ConnectorSession session,
-            ConnectorTableMetadata tableMetadata,
-            boolean ignoreExisting) {
+            ConnectorSession session, ConnectorTableMetadata tableMetadata, SaveMode saveMode) {
+        if (saveMode == SaveMode.REPLACE) {
+            throw new UnsupportedOperationException("Create or replace table is not supported.");
+        }
         SchemaTableName table = tableMetadata.getTable();
         Identifier identifier = Identifier.create(table.getSchemaName(), table.getTableName());
 
@@ -600,7 +609,10 @@ public class TrinoMetadata implements ConnectorMetadata {
 
     @Override
     public void addColumn(
-            ConnectorSession session, ConnectorTableHandle tableHandle, ColumnMetadata column) {
+            ConnectorSession session,
+            ConnectorTableHandle tableHandle,
+            ColumnMetadata column,
+            io.trino.spi.connector.ColumnPosition position) {
         TrinoTableHandle trinoTableHandle = (TrinoTableHandle) tableHandle;
         Identifier identifier =
                 new Identifier(trinoTableHandle.getSchemaName(), trinoTableHandle.getTableName());
@@ -669,6 +681,7 @@ public class TrinoMetadata implements ConnectorMetadata {
                     new ConstraintApplicationResult<>(
                             trinoTableHandle.copy(trinoFilter.getFilter()),
                             trinoFilter.getRemainFilter(),
+                            constraint.getExpression(),
                             false));
         } else {
             return Optional.empty();

@@ -23,7 +23,6 @@ import org.apache.paimon.codegen.CodeGenUtils;
 import org.apache.paimon.codegen.Projection;
 import org.apache.paimon.data.BinaryRow;
 import org.apache.paimon.schema.TableSchema;
-import org.apache.paimon.table.sink.KeyAndBucketExtractor;
 import org.apache.paimon.types.RowKind;
 
 import io.trino.spi.Page;
@@ -44,6 +43,7 @@ public class FixedBucketTableShuffleFunction implements BucketFunction {
     private final int bucketCount;
     private final boolean isRowId;
     private final ThreadLocal<Projection> projectionContext;
+    private final org.apache.paimon.bucket.BucketFunction paimonBucketFunction;
 
     public FixedBucketTableShuffleFunction(
             List<Type> partitionChannelTypes,
@@ -51,16 +51,31 @@ public class FixedBucketTableShuffleFunction implements BucketFunction {
             int workerCount) {
 
         TableSchema schema = partitioningHandle.getOriginalSchema();
-        this.projectionContext =
-                ThreadLocal.withInitial(
-                        () ->
-                                CodeGenUtils.newProjection(
-                                        schema.logicalPrimaryKeysType(), schema.primaryKeys()));
-        this.bucketCount = new CoreOptions(schema.options()).bucket();
-        this.workerCount = workerCount;
         this.isRowId =
                 partitionChannelTypes.size() == 1
                         && partitionChannelTypes.get(0) instanceof RowType;
+        if (isRowId) {
+            // UPDATE path: RowBlock is unwrapped to primary key fields;
+            // project bucket keys out of them
+            this.projectionContext =
+                    ThreadLocal.withInitial(
+                            () ->
+                                    CodeGenUtils.newProjection(
+                                            schema.logicalPrimaryKeysType(), schema.bucketKeys()));
+        } else {
+            // INSERT path: page contains only bucket key columns
+            this.projectionContext =
+                    ThreadLocal.withInitial(
+                            () ->
+                                    CodeGenUtils.newProjection(
+                                            schema.logicalBucketKeyType(), schema.bucketKeys()));
+        }
+        CoreOptions coreOptions = new CoreOptions(schema.options());
+        this.bucketCount = coreOptions.bucket();
+        this.paimonBucketFunction =
+                org.apache.paimon.bucket.BucketFunction.create(
+                        coreOptions, schema.logicalBucketKeyType());
+        this.workerCount = workerCount;
     }
 
     @Override
@@ -82,9 +97,7 @@ public class FixedBucketTableShuffleFunction implements BucketFunction {
 
         TrinoRow trinoRow = new TrinoRow(page.getSingleValuePage(position), RowKind.INSERT);
         BinaryRow pk = projectionContext.get().apply(trinoRow);
-        int bucket =
-                KeyAndBucketExtractor.bucket(
-                        KeyAndBucketExtractor.bucketKeyHashCode(pk), bucketCount);
+        int bucket = paimonBucketFunction.bucket(pk, bucketCount);
         return bucket % workerCount;
     }
 }

@@ -24,7 +24,7 @@ under the License.
     <parent>
         <groupId>org.apache.paimon</groupId>
         <artifactId>paimon-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>paimon-trino-${trino.version}</artifactId>
@@ -37,11 +37,11 @@ under the License.
     </scm>
 
     <properties>
-        <paimon.version>1.0.0</paimon.version>
-        <target.java.version>21</target.java.version>
-        <jdk.test.version>21</jdk.test.version>
-        <trino.version>440</trino.version>
-        <airlift.version>241</airlift.version>
+        <paimon.version>1.3.1</paimon.version>
+        <target.java.version>24</target.java.version>
+        <jdk.test.version>24</jdk.test.version>
+        <trino.version>476</trino.version>
+        <airlift.version>336</airlift.version>
         <slice.version>2.2</slice.version>
         <maven.toolchains.plugin.version>3.1.0</maven.toolchains.plugin.version>
         <hadoop.apache.version>3.2.0-18</hadoop.apache.version>
@@ -69,6 +69,18 @@ under the License.
                 <exclusion>
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.airlift</groupId>
+                    <artifactId>bootstrap</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.airlift</groupId>
+                    <artifactId>configuration</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.airlift</groupId>
+                    <artifactId>log-manager</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -101,6 +113,7 @@ under the License.
             <groupId>io.trino</groupId>
             <artifactId>trino-hdfs</artifactId>
             <version>${trino.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -296,6 +309,33 @@ under the License.
                         <goals>
                             <goal>attached</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.1</version>
+                <executions>
+                    <execution>
+                        <id>unpack-trino-hdfs-zip</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>io.trino</groupId>
+                                    <artifactId>trino-hdfs</artifactId>
+                                    <version>${trino.version}</version>
+                                    <type>zip</type>
+                                    <outputDirectory>${project.build.directory}/trino-hdfs-zip</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

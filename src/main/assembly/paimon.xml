@@ -22,10 +22,29 @@
         <format>tar.gz</format>
     </formats>
     <includeBaseDirectory>false</includeBaseDirectory>
+    <files>
+        <file>
+            <source>${project.build.directory}/${project.build.finalName}.jar</source>
+            <outputDirectory>paimon</outputDirectory>
+        </file>
+    </files>
+    <fileSets>
+        <fileSet>
+            <directory>${project.build.directory}/trino-hdfs-zip/hdfs</directory>
+            <outputDirectory>paimon/hdfs</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+    </fileSets>
     <dependencySets>
         <dependencySet>
             <outputDirectory>paimon</outputDirectory>
             <scope>runtime</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+            <excludes>
+                <exclude>io.trino:trino-hdfs</exclude>
+            </excludes>
         </dependencySet>
     </dependencySets>
 </assembly>

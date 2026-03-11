@@ -235,7 +235,7 @@ public class TrinoTypeUtils {
                                     VarcharType.MAX_LENGTH,
                                     ((VarcharType) trinoType).getBoundedLength()));
                 }
-                return DataTypes.VARCHAR(VarcharType.MAX_LENGTH);
+                return DataTypes.VARCHAR(VarCharType.MAX_LENGTH);
             } else if (trinoType instanceof io.trino.spi.type.BooleanType) {
                 return DataTypes.BOOLEAN();
             } else if (trinoType instanceof VarbinaryType) {

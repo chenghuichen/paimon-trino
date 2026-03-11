@@ -99,7 +99,7 @@ public class TableChangesFunction extends AbstractConnectorTableFunction {
                                         Slices.utf8Slice(
                                                 CoreOptions.INCREMENTAL_BETWEEN_SCAN_MODE
                                                         .defaultValue()
-                                                        .getValue()))
+                                                        .toString()))
                                 .type(VARCHAR)
                                 .build(),
                         ScalarArgumentSpecification.builder()
