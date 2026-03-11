@@ -47,7 +47,7 @@ import io.trino.spi.connector.ConnectorSession;
 import org.apache.hadoop.conf.Configuration;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -114,7 +114,10 @@ public class TrinoCatalog implements Catalog {
     }
 
     @Override
-    public PagedList<String> listDatabasesPaged(@Nullable Integer maxResults, @Nullable String pageToken, @Nullable String databaseNamePattern) {
+    public PagedList<String> listDatabasesPaged(
+            @Nullable Integer maxResults,
+            @Nullable String pageToken,
+            @Nullable String databaseNamePattern) {
         return current.listDatabasesPaged(maxResults, pageToken, databaseNamePattern);
     }
 
@@ -151,13 +154,27 @@ public class TrinoCatalog implements Catalog {
     }
 
     @Override
-    public PagedList<String> listTablesPaged(String databaseName, @Nullable Integer maxResults, @Nullable String pageToken, @Nullable String tableNamePattern, @Nullable String tableType) throws DatabaseNotExistException {
-        return current.listTablesPaged(databaseName, maxResults, pageToken, tableNamePattern, tableType);
+    public PagedList<String> listTablesPaged(
+            String databaseName,
+            @Nullable Integer maxResults,
+            @Nullable String pageToken,
+            @Nullable String tableNamePattern,
+            @Nullable String tableType)
+            throws DatabaseNotExistException {
+        return current.listTablesPaged(
+                databaseName, maxResults, pageToken, tableNamePattern, tableType);
     }
 
     @Override
-    public PagedList<Table> listTableDetailsPaged(String databaseName, @Nullable Integer maxResults, @Nullable String pageToken, @Nullable String tableNamePattern, @Nullable String tableType) throws DatabaseNotExistException {
-        return current.listTableDetailsPaged(databaseName, maxResults, pageToken, tableNamePattern, tableType);
+    public PagedList<Table> listTableDetailsPaged(
+            String databaseName,
+            @Nullable Integer maxResults,
+            @Nullable String pageToken,
+            @Nullable String tableNamePattern,
+            @Nullable String tableType)
+            throws DatabaseNotExistException {
+        return current.listTableDetailsPaged(
+                databaseName, maxResults, pageToken, tableNamePattern, tableType);
     }
 
     public void dropTable(Identifier identifier, boolean b) throws TableNotExistException {
@@ -183,13 +200,17 @@ public class TrinoCatalog implements Catalog {
     }
 
     @Override
-    public List<Partition> listPartitions(Identifier identifier)
-            throws TableNotExistException {
+    public List<Partition> listPartitions(Identifier identifier) throws TableNotExistException {
         return current.listPartitions(identifier);
     }
 
     @Override
-    public PagedList<Partition> listPartitionsPaged(Identifier identifier, @Nullable Integer maxResults, @Nullable String pageToken, @Nullable String partitionNamePattern) throws TableNotExistException {
+    public PagedList<Partition> listPartitionsPaged(
+            Identifier identifier,
+            @Nullable Integer maxResults,
+            @Nullable String pageToken,
+            @Nullable String partitionNamePattern)
+            throws TableNotExistException {
         return current.listPartitionsPaged(identifier, maxResults, pageToken, partitionNamePattern);
     }
 
@@ -204,22 +225,31 @@ public class TrinoCatalog implements Catalog {
     }
 
     @Override
-    public boolean commitSnapshot(Identifier identifier, @Nullable String tableUuid, Snapshot snapshot, List<PartitionStatistics> statistics) throws TableNotExistException {
+    public boolean commitSnapshot(
+            Identifier identifier,
+            @Nullable String tableUuid,
+            Snapshot snapshot,
+            List<PartitionStatistics> statistics)
+            throws TableNotExistException {
         return current.commitSnapshot(identifier, tableUuid, snapshot, statistics);
     }
 
     @Override
-    public Optional<TableSnapshot> loadSnapshot(Identifier identifier) throws TableNotExistException {
+    public Optional<TableSnapshot> loadSnapshot(Identifier identifier)
+            throws TableNotExistException {
         return current.loadSnapshot(identifier);
     }
 
     @Override
-    public Optional<Snapshot> loadSnapshot(Identifier identifier, String version) throws TableNotExistException {
+    public Optional<Snapshot> loadSnapshot(Identifier identifier, String version)
+            throws TableNotExistException {
         return current.loadSnapshot(identifier, version);
     }
 
     @Override
-    public PagedList<Snapshot> listSnapshotsPaged(Identifier identifier, @Nullable Integer maxResults, @Nullable String pageToken) throws TableNotExistException {
+    public PagedList<Snapshot> listSnapshotsPaged(
+            Identifier identifier, @Nullable Integer maxResults, @Nullable String pageToken)
+            throws TableNotExistException {
         return current.listSnapshotsPaged(identifier, maxResults, pageToken);
     }
 
@@ -229,7 +259,8 @@ public class TrinoCatalog implements Catalog {
     }
 
     @Override
-    public void createBranch(Identifier identifier, String branch, @Nullable String fromTag) throws TableNotExistException, BranchAlreadyExistException, TagNotExistException {
+    public void createBranch(Identifier identifier, String branch, @Nullable String fromTag)
+            throws TableNotExistException, BranchAlreadyExistException, TagNotExistException {
         current.createBranch(identifier, branch, fromTag);
     }
 
@@ -249,17 +280,20 @@ public class TrinoCatalog implements Catalog {
     }
 
     @Override
-    public void createPartitions(Identifier identifier, List<Map<String, String>> partitions) throws TableNotExistException {
+    public void createPartitions(Identifier identifier, List<Map<String, String>> partitions)
+            throws TableNotExistException {
         current.createPartitions(identifier, partitions);
     }
 
     @Override
-    public void dropPartitions(Identifier identifier, List<Map<String, String>> partitions) throws TableNotExistException {
+    public void dropPartitions(Identifier identifier, List<Map<String, String>> partitions)
+            throws TableNotExistException {
         current.dropPartitions(identifier, partitions);
     }
 
     @Override
-    public void alterPartitions(Identifier identifier, List<PartitionStatistics> partitions) throws TableNotExistException {
+    public void alterPartitions(Identifier identifier, List<PartitionStatistics> partitions)
+            throws TableNotExistException {
         current.alterPartitions(identifier, partitions);
     }
 
@@ -274,22 +308,29 @@ public class TrinoCatalog implements Catalog {
     }
 
     @Override
-    public void createFunction(Identifier identifier, Function function, boolean ignoreIfExists) throws FunctionAlreadyExistException, DatabaseNotExistException {
+    public void createFunction(Identifier identifier, Function function, boolean ignoreIfExists)
+            throws FunctionAlreadyExistException, DatabaseNotExistException {
         current.createFunction(identifier, function, ignoreIfExists);
     }
 
     @Override
-    public void dropFunction(Identifier identifier, boolean ignoreIfNotExists) throws FunctionNotExistException {
+    public void dropFunction(Identifier identifier, boolean ignoreIfNotExists)
+            throws FunctionNotExistException {
         current.dropFunction(identifier, ignoreIfNotExists);
     }
 
     @Override
-    public void alterFunction(Identifier identifier, List<FunctionChange> changes, boolean ignoreIfNotExists) throws FunctionNotExistException, DefinitionAlreadyExistException, DefinitionNotExistException {
+    public void alterFunction(
+            Identifier identifier, List<FunctionChange> changes, boolean ignoreIfNotExists)
+            throws FunctionNotExistException,
+                    DefinitionAlreadyExistException,
+                    DefinitionNotExistException {
         current.alterFunction(identifier, changes, ignoreIfNotExists);
     }
 
     @Override
-    public List<String> authTableQuery(Identifier identifier, @Nullable List<String> select) throws TableNotExistException {
+    public List<String> authTableQuery(Identifier identifier, @Nullable List<String> select)
+            throws TableNotExistException {
         return current.authTableQuery(identifier, select);
     }
 
@@ -317,14 +358,13 @@ public class TrinoCatalog implements Catalog {
 
     @Override
     public void alterTable(Identifier identifier, SchemaChange change, boolean ignoreIfNotExists)
-            throws TableNotExistException,
-                    ColumnAlreadyExistException,
-                    ColumnNotExistException {
+            throws TableNotExistException, ColumnAlreadyExistException, ColumnNotExistException {
         current.alterTable(identifier, change, ignoreIfNotExists);
     }
 
     @Override
-    public void markDonePartitions(Identifier identifier, List<Map<String, String>> partitions) throws TableNotExistException {
+    public void markDonePartitions(Identifier identifier, List<Map<String, String>> partitions)
+            throws TableNotExistException {
         current.markDonePartitions(identifier, partitions);
     }
 }
