@@ -97,6 +97,7 @@ public class FixedBucketTableShuffleFunction implements BucketFunction {
 
         TrinoRow trinoRow = new TrinoRow(page.getSingleValuePage(position), RowKind.INSERT);
         BinaryRow pk = projectionContext.get().apply(trinoRow);
+        // paimon 1.3.1 no longer support KeyAndBucketExtractor, should use BucketFunction
         int bucket = paimonBucketFunction.bucket(pk, bucketCount);
         return bucket % workerCount;
     }

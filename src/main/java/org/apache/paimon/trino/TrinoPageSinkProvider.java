@@ -97,11 +97,10 @@ public class TrinoPageSinkProvider implements ConnectorPageSinkProvider {
                         : BucketMode.HASH_FIXED;
         switch (mode) {
             case HASH_FIXED:
-            case HASH_DYNAMIC:
             case BUCKET_UNAWARE:
                 break;
             default:
-                throw new IllegalArgumentException("Unknown bucket mode: " + mode);
+                throw new IllegalArgumentException("Unsupported bucket mode: " + mode);
         }
     }
 

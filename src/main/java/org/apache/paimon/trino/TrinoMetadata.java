@@ -133,11 +133,10 @@ public class TrinoMetadata implements ConnectorMetadata {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            case HASH_DYNAMIC:
             case BUCKET_UNAWARE:
                 return Optional.empty();
             default:
-                throw new IllegalArgumentException("Unknown table bucket mode: " + bucketMode);
+                throw new IllegalArgumentException("Unsupported table bucket mode: " + bucketMode);
         }
     }
 
