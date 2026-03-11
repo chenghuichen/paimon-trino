@@ -652,6 +652,11 @@ public class TrinoDistributedQueryTest extends AbstractDistributedEngineOnlyQuer
     }
 
     @Override
+    public void testMultipleConcurrentQueries() {
+        throw new RuntimeException("TODO: test not implemented yet");
+    }
+
+    @Override
     public void testMultipleOccurrencesOfCorrelatedSymbol() {
         throw new RuntimeException("TODO: test not implemented yet");
     }

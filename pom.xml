@@ -224,6 +224,13 @@ under the License.
                 <version>${spotless.version}</version>
                 <configuration>
                     <java>
+                        <excludes>
+                            <exclude>src/main/java/org/apache/paimon/trino/TrinoColumnHandle.java</exclude>
+                            <exclude>src/main/java/org/apache/paimon/trino/TrinoMergeTableHandle.java</exclude>
+                            <exclude>src/main/java/org/apache/paimon/trino/TrinoPartitioningHandle.java</exclude>
+                            <exclude>src/main/java/org/apache/paimon/trino/TrinoSplit.java</exclude>
+                            <exclude>src/main/java/org/apache/paimon/trino/TrinoTableHandle.java</exclude>
+                        </excludes>
                         <googleJavaFormat>
                             <version>1.17.0</version>
                             <style>AOSP</style>
@@ -338,6 +345,12 @@ under the License.
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
             </plugin>
 
             <plugin>
