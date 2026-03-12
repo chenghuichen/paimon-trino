@@ -60,8 +60,9 @@ public class TrinoFileIO implements FileIO {
 
     @Override
     public SeekableInputStream newInputStream(Path path) throws IOException {
-        return new TrinoInputStreamWrapper(
-                trinoFileSystem.newInputFile(Location.of(path.toString())).newStream());
+        return new BufferedSeekableInputStream(
+                new TrinoInputStreamWrapper(
+                        trinoFileSystem.newInputFile(Location.of(path.toString())).newStream()));
     }
 
     @Override
